@@ -8,10 +8,10 @@ HEADERS = {
     "Accept": "application/json",
 }
 
-def fetch_hanoi_evs(pages=2):
+def fetch_hanoi_evs(pages=20):
     all_ads = []
     base_url = "https://gateway.chotot.com/v1/public/ad-listing"
-    limit = 20 # Tăng lên 20 tin 1 trang cho nhanh
+    limit = 50 
     
     for page in range(pages):
         offset = page * limit
@@ -36,7 +36,7 @@ def fetch_hanoi_evs(pages=2):
         else:
             print(f"[-] Lỗi {res.status_code}")
             
-        time.sleep(2)  # Nghỉ 2 giây giữa các lần gọi để không bị chặn
+        time.sleep(2) 
         
     # Lưu file
     os.makedirs("data/raw", exist_ok=True)
@@ -45,4 +45,4 @@ def fetch_hanoi_evs(pages=2):
     print(f"[*] XONG! Đã lưu tổng cộng {len(all_ads)} tin vào thư mục data/raw/")
 
 if __name__ == "__main__":
-    fetch_hanoi_evs(pages=3)
+    fetch_hanoi_evs(pages=20)
