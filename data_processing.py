@@ -58,29 +58,26 @@ def process_raw_data(input_path, output_path):
     
     # 2. Chỉ giữ lại các cột quan trọng
     cols_to_keep = ['list_id', 'subject', 'price', 'body', 'regdate', 'mileage_v2', 'region_name', 'area_name']
-    # Lọc những cột có tồn tại trong df để tránh lỗi
+
     df = df[[c for c in cols_to_keep if c in df.columns]]
     
     print("[*] Đang thực thi Legal Anonymization (Che thông tin)...")
     df['body_clean'] = df['body'].apply(anonymize_text)
     
     print("[*] Đang thực thi Price Normalization (Bóc tách Pin)...")
-    # Hợp nhất subject và body để tìm keyword cho chuẩn
+
     df['full_text'] = df['subject'] + " " + df['body_clean']
     df['battery_status'] = df['full_text'].apply(extract_battery_status)
     
-    # Xóa cột full_text nháp đi cho nhẹ
     df = df.drop(columns=['full_text'])
     
-    # 3. Xuất ra file CSV sạch để chuẩn bị vẽ biểu đồ
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df.to_csv(output_path, index=False, encoding='utf-8-sig')
     print(f"[+] Hoàn tất! File sạch đã lưu tại: {output_path}")
     print(df[['subject', 'price', 'battery_status']].head())
 
 if __name__ == "__main__":
-    # Đường dẫn file JSON bạn vừa cào được
-    INPUT_FILE = "data/raw/hanoi_ev_raw.json"  
+    INPUT_FILE = "data/raw/ev_raw.json"  
     OUTPUT_FILE = "data/processed/ev_market_cleaned.csv"
     
     process_raw_data(INPUT_FILE, OUTPUT_FILE)
