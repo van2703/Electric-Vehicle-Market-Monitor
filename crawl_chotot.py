@@ -8,7 +8,7 @@ HEADERS = {
     "Accept": "application/json",
 }
 
-def fetch_hanoi_evs(pages=20):
+def fetch_evs(pages=20):
     all_ads = []
     base_url = "https://gateway.chotot.com/v1/public/ad-listing"
     limit = 50 
@@ -17,11 +17,11 @@ def fetch_hanoi_evs(pages=20):
         offset = page * limit
         # Đưa chính xác các tham số bạn vừa tìm được vào đây
         params = {
+            "type": "s",
             "limit": limit,
             "offset": offset,
             "cg": "2020",
             "motorbiketype": "4",
-            "region_v2": "12000",
             "st": "s,k"
         }
         
@@ -40,9 +40,9 @@ def fetch_hanoi_evs(pages=20):
         
     # Lưu file
     os.makedirs("data/raw", exist_ok=True)
-    with open("data/raw/hanoi_ev_raw.json", "w", encoding="utf-8") as f:
+    with open("data/raw/ev_raw.json", "w", encoding="utf-8") as f:
         json.dump(all_ads, f, ensure_ascii=False, indent=2)
     print(f"[*] XONG! Đã lưu tổng cộng {len(all_ads)} tin vào thư mục data/raw/")
 
 if __name__ == "__main__":
-    fetch_hanoi_evs(pages=20)
+    fetch_evs(pages=20)
