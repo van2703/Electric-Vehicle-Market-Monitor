@@ -1,21 +1,76 @@
-﻿Brand,Model_Raw,Price_Benchmark
-VinFast,VinFast VF2,188000000
-VinFast,VinFast MiniO Green,188000000
-VinFast,VinFast EC Van Tiêu chuẩn,268000000
-VinFast,Vinfast VF 3 Eco,285000000
-VinFast,Vinfast VF 3 Plus,296000000
-VinFast,VinFast Herio Green,469000000
-VinFast,VinFast VF e34,710000000
-VinFast,VinFast VF5 Plus,496000000
-VinFast,VinFast Nerio Green,628000000
-VinFast,VinFast Limo Green,699000000
-VinFast,VinFast VF6 Eco,646000000
-VinFast,VinFast VF6 Plus,699000000
-VinFast,VinFast VF7 Eco,740000000
-VinFast,VinFast VF7 Plus 1 cầu,830000000
-VinFast,VinFast VF7 Plus 2 cầu,850000000
-VinFast,VinFast VF8 Eco,898000000
-VinFast,VinFast VF8 ALL NEW,899000000
-VinFast,VinFast VF8 Plus,1079000000
-VinFast,VinFast VF9 Eco,1348000000
-VinFast,VinFast VF9 Plus,1529000000
+﻿Category,Brand,Model_Raw,Price_Benchmark
+Ô tô,VinFast,VinFast VF2,188000000
+Ô tô,VinFast,VinFast MiniO Green,188000000
+Ô tô,VinFast,VinFast EC Van Tiêu chuẩn,268000000
+Ô tô,VinFast,Vinfast VF 3 Eco,285000000
+Ô tô,VinFast,Vinfast VF 3 Plus,296000000
+Ô tô,VinFast,VinFast Herio Green,469000000
+Ô tô,VinFast,VinFast VF e34,710000000
+Ô tô,VinFast,VinFast VF5 Plus,496000000
+Ô tô,VinFast,VinFast Nerio Green,628000000
+Ô tô,VinFast,VinFast Limo Green,699000000
+Ô tô,VinFast,VinFast VF6 Eco,646000000
+Ô tô,VinFast,VinFast VF6 Plus,699000000
+Ô tô,VinFast,VinFast VF7 Eco,740000000
+Ô tô,VinFast,VinFast VF7 Plus 1 cầu,830000000
+Ô tô,VinFast,VinFast VF7 Plus 2 cầu,850000000
+Ô tô,VinFast,VinFast VF8 Eco,898000000
+Ô tô,VinFast,VinFast VF8 ALL NEW,899000000
+Ô tô,VinFast,VinFast VF8 Plus,1079000000
+Ô tô,VinFast,VinFast VF9 Eco,1348000000
+Ô tô,VinFast,VinFast VF9 Plus,1529000000
+Xe máy,Pixar Việt Nam,Xe Máy Điện Pixar 946 Plus,17900000
+Xe máy,Espero,Xe Máy Điện Espero Diamond Plus 2025,19500000
+Xe máy,VinFast,Xe Máy Điện Vinfast Evo Grand,18480000
+Xe máy,Yadea,Xe Máy Điện YADEA Vekoo,14990000
+Xe máy,Espero,Xe Máy Điện Espero Enigma 2025,18900000
+Xe máy,Yadea,Xe Máy Điện Yadea X-Sky,9990000
+Xe máy,VinFast,XE MÁY ĐIỆN VINFAST Flazz,15548000
+Xe máy,VinFast,XE MÁY ĐIỆN VINFAST ZGoo,14628000
+Xe máy,Yadea,Xe Máy Điện Yadea Odora S2,16500000
+Xe máy,Yadea,Xe Máy Điện Yadea Ocean,16990000
+Xe máy,Nijia,Xe Máy Điện Venus Prince 2025,15490000
+Xe máy,Yadea,Xe Máy Điện Yadea Ova,18190000
+Xe máy,VinFast,Xe Máy Điện Vinfast Amio,12788000
+Xe máy,Yadea,Xe Máy Điện Yadea Velax,29990000
+Xe máy,Espero,Xe Máy Điện Espero Velia E,23500000
+Xe máy,Yadea,Xe máy điện YADEA Oris,22990000
+Xe máy,Yadea,Xe máy điện YADEA V002 Pin Lithium,27990000
+Xe máy,Yadea,Xe Máy Điện Yadea ORLA P,20490000
+Xe máy,VinFast,Xe Máy Điện Vinfast Vero X,30712000
+Xe máy,Yadea,Xe máy điện YADEA Osta H+,28990000
+Xe máy,Yadea,Xe máy điện YADEA Osta P,33990000
+Xe máy,Dat Bike,Xe Máy Điện Dat Bike Quantum S1,49900000
+Xe máy,Dat Bike,Xe Máy Điện Dat Bike Quantum S2,42900000
+Xe máy,Dat Bike,Xe Máy Điện Dat Bike Quantum S3,34900000
+Xe máy,VinFast,Xe Máy Điện Vinfast Viper (Thuê Pin),36708000
+Ô tô,BYD,BYD Seal Advanced,1119000000
+Ô tô,BYD,BYD Seal Performance,1359000000
+Ô tô,BYD,BYD Atto 3 Dynamic,766000000
+Ô tô,BYD,BYD Dolphin GLX,659000000
+Xe máy,VinFast,VinFast Evo 200,18000000
+Xe máy,VinFast,VinFast Feliz S,27000000
+Xe máy,VinFast,VinFast Klara S,35000000
+Xe máy,VinFast,VinFast Vento S,50000000
+Xe máy,VinFast,VinFast Ludo,12900000
+Xe máy,Dat Bike,Dat Bike Weaver++,65900000
+Xe máy,Dat Bike,Dat Bike Weaver 200,54900000
+Xe máy,Dibao,Dibao Pansy Neo S4,17190000
+Xe máy,Dibao,Dibao Pansy Neo S3,15490000
+Xe máy,Dibao,Dibao Gogo Moon,14500000
+Xe máy,Dibao,Dibao Creer E,14990000
+Xe máy,Dibao,Dibao Creer Nile,15190000
+Xe máy,Dibao,Dibao Tesla Dio E,14490000
+Xe máy,Dibao,Dibao Tesla Chic,16990000
+Xe máy,Dibao,Dibao Xman Neo,16500000
+Xe máy,Dibao,Dibao LS007,22990000
+Xe máy,Dibao,Dibao Shine,22990000
+Xe máy,Yadea,Yadea Voltguard 72V,25990000
+Xe máy,Yadea,Yadea Ossy,18490000
+Xe máy,Osakar,Osakar Nispa SV,16990000
+Xe máy,Osakar,Osakar Momo,11990000
+Xe máy,Daelim,Daelim Nova Luna,13990000
+Xe máy,Daelim,Daelim Nova Revo,20990000
+Xe máy,Tailg,Tailg R60,16840000
+Xe máy,Tailg,Tailg T61,28840000
+Xe máy,Tailg,Tailg T72,36750000
