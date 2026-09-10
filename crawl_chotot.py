@@ -8,7 +8,7 @@ HEADERS = {
     "Accept": "application/json",
 }
 
-def fetch_data(params, output_filename, pages=10):
+def fetch_data(params, output_filename, pages=20):
     all_ads = []
     base_url = "https://gateway.chotot.com/v1/public/ad-listing"
     limit = 50
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         "cg": "2020",             # Danh mục: Xe máy
         "motorbiketype": "4",     # Động cơ: Điện
     }
-    fetch_data(params=params_bike, output_filename="chotot_xemay_raw.json", pages=10)
+    fetch_data(params=params_bike, output_filename="chotot_xemay_raw.json", pages=20)
     
     # ==========================================
     # 2. CẤU HÌNH VÀ CÀO: Ô TÔ ĐIỆN
@@ -60,4 +60,4 @@ if __name__ == "__main__":
         "cg": "2010",             # Danh mục: Ô tô
         "fuel": "4"               # Động cơ: Điện
     }
-    fetch_data(params=params_car, output_filename="chotot_oto_raw.json", pages=10)
+    fetch_data(params=params_car, output_filename="chotot_oto_raw.json", pages=20)
