@@ -24,6 +24,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 RAW_PATH = BASE_DIR / "data" / "raw" / "chotot_xemay_raw.json"
 OUT_PATH = BASE_DIR / "data" / "interim" / "chotot_xemay_clean.csv"
 
+DROP_COLUMNS = [
+    # 100% null
+    "ad_features", "ad_labels", "business_days", "cta_buttons",
+    "fee_type", "inspection_images", "label_campaigns", "params",
+    "product_id", "pty_characteristics", "special_display_images",
+    "specific_service_offered", "veh_ecom_product_id", "veh_ecom_shop_id",
+    # trùng lặp / hằng số cấu trúc
+    "account_oid", "category_id", "category_name", "motorbike_type_id",
+    "type", "job_tier",
+    # gần null / hằng số vô dụng
+    "motorbike_capacity", "location_id", "unique_street_id",
+    "is_main_street", "detail_address", "sticky_ad_type",
+    "sticky_ad_platinum", "veh_inspected",
+]
 
 # ---------- Helpers ----------
 def json_safe(v):
@@ -178,7 +192,7 @@ def main() -> None:
     rows = [clean_record(r, cleaned_at) for r in records]
     df = pd.DataFrame(rows)
 
-    print(f"[3/5] Loại record lỗi ...")
+    print(f"[3/5] Lọc record lỗi & Deduplicate ...")
     before = len(df)
     df = df.dropna(subset=["source_listing_id", "list_id"])
     dropped_missing = before - len(df)
@@ -191,9 +205,41 @@ def main() -> None:
     if dropped_dup:
         print(f"      Drop {dropped_dup} record trùng ad_id")
 
-    # Cast datetime cho gọn khi ghi CSV
+    # --- Lọc và tinh gọn cột ---
+    print(f"      Lọc cột không cần thiết ...")
+    # 1. Drop cột vô dụng cấu hình sẵn
+    drop = [c for c in DROP_COLUMNS if c in df.columns]
+    if drop:
+        before_cols = len(df.columns)
+        df = df.drop(columns=drop)
+        print(f"      Drop {len(drop)} cột vô dụng ({before_cols} -> {len(df.columns)})")
+
+    # 2. Auto-drop cột 100% null
+    all_null = [c for c in df.columns if df[c].isna().all()]
+    if all_null:
+        df = df.drop(columns=all_null)
+        print(f"      Auto-drop {len(all_null)} cột 100% null: {all_null}")
+
+    # 3. Auto-drop cột single-value không nằm trong whitelist
+    KEEP_SINGLE_VALUE = {
+        "source", "vehicle_type", "cleaned_at", "is_price_valid",
+        "state", "status", "company_ad", "is_shop_verified",
+        "has_video", "protection_entitlement", "veh_ecom_can_buy_now",
+        "is_electric",
+    }
+    if len(df) > 1:
+        single = [
+            c for c in df.columns
+            if df[c].nunique(dropna=True) <= 1 and c not in KEEP_SINGLE_VALUE
+        ]
+        if single:
+            df = df.drop(columns=single)
+            print(f"      Auto-drop {len(single)} cột single-value: {single}")
+
+    # Cast datetime cho các cột còn tồn tại
     for c in ["posted_at", "orig_posted_at"]:
-        df[c] = pd.to_datetime(df[c], errors="coerce")
+        if c in df.columns:
+            df[c] = pd.to_datetime(df[c], errors="coerce")
 
     print(f"[4/5] Ghi output: {OUT_PATH}")
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -216,15 +262,17 @@ def main() -> None:
         print(df["region_name"].value_counts().head(10).to_string())
 
     print("\n      --- Giá (VND) ---")
-    p = df["price_vnd"].dropna()
-    if len(p):
-        print(f"        min    : {int(p.min()):>15,}")
-        print(f"        median : {int(p.median()):>15,}")
-        print(f"        max    : {int(p.max()):>15,}")
+    if "price_vnd" in df:
+        p = df["price_vnd"].dropna()
+        if len(p):
+            print(f"        min    : {int(p.min()):>15,}")
+            print(f"        median : {int(p.median()):>15,}")
+            print(f"        max    : {int(p.max()):>15,}")
 
     print("\n      --- posted_at ---")
-    print(f"        min: {df['posted_at'].min()}")
-    print(f"        max: {df['posted_at'].max()}")
+    if "posted_at" in df:
+        print(f"        min: {df['posted_at'].min()}")
+        print(f"        max: {df['posted_at'].max()}")
 
 
 if __name__ == "__main__":
