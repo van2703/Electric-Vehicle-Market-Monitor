@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import os
+import re
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -28,19 +29,26 @@ def fetch_phoxedien(base_url, pages=2):
             if not price_tags: break
                 
             for p_tag in price_tags:
-                price = p_tag.text.strip()
+                price_text = p_tag.text.strip()
+                # Làm sạch giá: loại bỏ chữ đ, ₫
+                price_raw = re.sub(r'[đ₫]', '', price_text).strip()
+                clean_digits = re.sub(r'[^\d]', '', price_raw)
+                price_clean = int(clean_digits) if clean_digits else None
+
                 title_tag = p_tag.find_previous('a')
                 title = title_tag.text.strip() if title_tag else "N/A"
                 
                 if title and len(title) > 3:
                     # BỘ LỌC CHỐNG TRÙNG LẶP: Kiểm tra xem xe này đã có trong danh sách chưa
                     if len(all_bikes) > 0 and all_bikes[-1]["subject"] == title:
-                        all_bikes[-1]["price_raw"] = price
+                        all_bikes[-1]["price_raw"] = price_raw
+                        all_bikes[-1]["price_clean"] = price_clean
                     else:
                         all_bikes.append({
                             "source": "phoxedien_B2C",
                             "subject": title,
-                            "price_raw": price,
+                            "price_raw": price_raw,
+                            "price_clean": price_clean,
                             "battery_status": "Kèm pin"
                         })
         except Exception as e:

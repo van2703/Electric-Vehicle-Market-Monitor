@@ -5,6 +5,13 @@ Chạy: python scripts/list_fields.py
 import json
 from pathlib import Path
 from collections import Counter
+import sys
+
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 
 def list_fields(json_path: Path) -> None:

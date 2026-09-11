@@ -3,9 +3,10 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import os
+import re
 
 HEADERS = {
-    "User-Agent": "Mozilla/50 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     "Accept-Language": "vi-VN,vi;q=0.9"
 }
 
@@ -28,14 +29,20 @@ def fetch_thegioixedien(base_url, pages=2):
             if not price_tags: break
                 
             for p_tag in price_tags:
-                price = p_tag.text.strip()
+                price_text = p_tag.text.strip()
+                # Loại bỏ ký tự đ, ₫
+                price_raw = re.sub(r'[đ₫]', '', price_text).strip()
+                clean_digits = re.sub(r'[^\d]', '', price_raw)
+                price_clean = int(clean_digits) if clean_digits else None
+
                 title_tag = p_tag.find_previous('h3')
                 title = title_tag.text.strip() if title_tag else "N/A"
                 
                 all_bikes.append({
                     "source": "thegioixedien_B2C",
                     "subject": title,
-                    "price_raw": price,
+                    "price_raw": price_raw,
+                    "price_clean": price_clean,
                     "battery_status": "Kèm pin"
                 })
         except Exception as e:
