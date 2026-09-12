@@ -258,8 +258,11 @@ def build_benchmark_timeline_data():
     df_timeline = pd.DataFrame(timeline_records)
 
     # 1. Lưu dạng Long Format (Tidy format để query và nạp Pipeline)
-    os.makedirs("data/raw", exist_ok=True)
-    long_path = "data/raw/ev_benchmark_timeline.csv"
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    bench_dir = base_dir / "data" / "benchmark"
+    bench_dir.mkdir(parents=True, exist_ok=True)
+    long_path = bench_dir / "ev_benchmark_timeline.csv"
     df_timeline.to_csv(long_path, index=False, encoding="utf-8-sig")
     print(f"[+] [1/2] Đã lưu bảng Long Format ({len(df_timeline)} dòng) tại: {long_path}")
 
@@ -275,7 +278,7 @@ def build_benchmark_timeline_data():
         if isinstance(col, (int, float)):
             df_pivot[col] = df_pivot[col].fillna(0).astype('int64')
 
-    wide_path = "data/raw/ev_benchmark_matrix.csv"
+    wide_path = bench_dir / "ev_benchmark_matrix.csv"
     df_pivot.to_csv(wide_path, index=False, encoding="utf-8-sig")
     print(f"[+] [2/2] Đã lưu bảng Ma trận Wide Format ({len(df_pivot)} models) tại: {wide_path}")
 

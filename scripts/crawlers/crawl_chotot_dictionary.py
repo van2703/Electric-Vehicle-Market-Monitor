@@ -97,7 +97,10 @@ def parse_param_dictionary(raw_data, model_param_key):
 
 def crawl_all_chotot_dictionaries():
     print("=== TỰ ĐỘNG CÀO TỪ ĐIỂN CHỢ TỐT CHO DATA PIPELINE ===")
-    os.makedirs("data/raw", exist_ok=True)
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    dict_dir = base_dir / "data" / "dictionaries"
+    dict_dir.mkdir(parents=True, exist_ok=True)
     
     full_dictionary = {
         "xemay": {},
@@ -173,7 +176,7 @@ def crawl_all_chotot_dictionaries():
     # 4. LƯU CÁC FILE OUTPUT
     # ==========================================
     # File 1: JSON toàn diện để import trực tiếp vào Data Pipeline
-    dict_json_path = "data/raw/chotot_dictionary.json"
+    dict_json_path = dict_dir / "chotot_dictionary.json"
     with open(dict_json_path, "w", encoding="utf-8") as f:
         json.dump(full_dictionary, f, ensure_ascii=False, indent=2)
     print(f"\n[+] Lưu Từ điển JSON hoàn chỉnh tại: {dict_json_path}")
@@ -181,7 +184,7 @@ def crawl_all_chotot_dictionaries():
     # File 2: CSV Danh sách toàn bộ Hãng & Dòng xe để tra cứu trực quan
     if all_models_rows:
         df_models = pd.DataFrame(all_models_rows)
-        models_csv_path = "data/raw/chotot_models_dictionary.csv"
+        models_csv_path = dict_dir / "chotot_models_dictionary.csv"
         df_models.to_csv(models_csv_path, index=False, encoding="utf-8-sig")
         print(f"[+] Lưu Bảng Model CSV ({len(df_models)} dòng) tại: {models_csv_path}")
 

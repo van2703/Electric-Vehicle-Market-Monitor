@@ -175,8 +175,11 @@ def get_known_benchmark_data():
 # 4. MAPPING VÀ HOÀN THIỆN KHUNG BENCHMARK
 # ==========================================
 def map_prices_to_benchmark_frame(all_benchmark_data):
-    frame_path = "data/raw/benchmark_frame.csv"
-    if not os.path.exists(frame_path):
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    bench_dir = base_dir / "data" / "benchmark"
+    frame_path = bench_dir / "benchmark_frame.csv"
+    if not frame_path.exists():
         print("[-] Không tìm thấy benchmark_frame.csv")
         return None
 
@@ -217,7 +220,10 @@ def map_prices_to_benchmark_frame(all_benchmark_data):
 
 def run():
     print("=== TỔNG HỢP TOÀN DIỆN BẢNG GIÁ BENCHMARK XE ĐIỆN ===")
-    os.makedirs("data/raw", exist_ok=True)
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    bench_dir = base_dir / "data" / "benchmark"
+    bench_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Thu thập từ các nguồn
     bonbanh_data = fetch_bonbanh_benchmark()
@@ -229,14 +235,14 @@ def run():
     df_all = pd.DataFrame(all_records).drop_duplicates(subset=['Brand', 'Model_Raw']).reset_index(drop=True)
 
     # Lưu file danh sách chi tiết bonbanh_benchmark.csv
-    bonbanh_file = "data/raw/bonbanh_benchmark.csv"
+    bonbanh_file = bench_dir / "bonbanh_benchmark.csv"
     df_all.to_csv(bonbanh_file, index=False, encoding='utf-8-sig')
     print(f"\n[+] Đã lưu {len(df_all)} phiên bản chi tiết vào: {bonbanh_file}")
 
     # 2. Hoàn thiện khung Benchmark Dimension Table
     df_final = map_prices_to_benchmark_frame(all_records)
     if df_final is not None:
-        final_file = "data/raw/final_benchmark.csv"
+        final_file = bench_dir / "final_benchmark.csv"
         df_final.to_csv(final_file, index=False, encoding='utf-8-sig')
         print(f"[+] Hoàn thiện 100% Khung Benchmark lưu tại: {final_file}")
 

@@ -12,12 +12,16 @@ if sys.platform == 'win32':
         pass
 
 def load_all_raw_data():
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    c2c_dir = base_dir / "data" / "raw" / "c2c"
+    b2c_dir = base_dir / "data" / "raw" / "b2c"
     all_titles = []
     
     # 1. Đọc dữ liệu JSON (C2C Chợ Tốt)
     for file_name in ["chotot_xemay_raw.json", "chotot_oto_raw.json"]:
-        path = f"data/raw/{file_name}"
-        if os.path.exists(path):
+        path = c2c_dir / file_name
+        if path.exists():
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 # Lấy cột subject (Tiêu đề)
@@ -25,9 +29,9 @@ def load_all_raw_data():
                 all_titles.extend(titles)
                 
     # 2. Đọc dữ liệu CSV (B2C Đại lý)
-    for file_name in ["thegioixedien_raw.csv", "otodien_raw.csv", "phoxedien_raw.csv", "b2c_oto_raw.csv"]:
-        path = f"data/raw/{file_name}"
-        if os.path.exists(path):
+    for file_name in ["thegioixedien_raw.csv", "otodien_raw.csv", "phoxedien_raw.csv"]:
+        path = b2c_dir / file_name
+        if path.exists():
             df = pd.read_csv(path)
             if 'subject' in df.columns:
                 all_titles.extend(df['subject'].dropna().tolist())
@@ -158,7 +162,11 @@ def build_frame():
     unique_models = df_models.drop_duplicates().reset_index(drop=True)
     
     # Lưu ra file để làm khung (Frame) cho bước cào giá Benchmark
-    output_path = "data/raw/benchmark_frame.csv"
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    bench_dir = base_dir / "data" / "benchmark"
+    bench_dir.mkdir(parents=True, exist_ok=True)
+    output_path = bench_dir / "benchmark_frame.csv"
     unique_models.to_csv(output_path, index=False, encoding='utf-8-sig')
     
     print(f"\n[+] XONG! Đã trích xuất được {len(unique_models)} Model xe thực tế.")

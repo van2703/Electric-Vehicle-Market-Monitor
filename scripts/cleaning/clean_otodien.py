@@ -77,20 +77,26 @@ def classify_battery(subject_raw, price):
         
     return 'Cần xác minh'
 
-def clean_otodien_dataset(csv_path="data/raw/otodien_raw.csv"):
-    if not os.path.exists(csv_path):
+def clean_otodien_dataset(csv_path=None, out_path=None):
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    if csv_path is None:
+        csv_path = base_dir / "data" / "raw" / "b2c" / "otodien_raw.csv"
+    else:
+        csv_path = Path(csv_path)
+
+    if out_path is None:
+        out_path = base_dir / "data" / "interim" / "otodien_clean.csv"
+    else:
+        out_path = Path(out_path)
+
+    if not csv_path.exists():
         print(f"[X] Không tìm thấy file: {csv_path}")
         return
         
     print(f"[*] Đang xử lý file: {csv_path}")
     df = pd.read_csv(csv_path, encoding='utf-8')
     print(f"[+] Số dòng hiện tại: {len(df)}")
-    
-    # Tạo bản backup nếu chưa có
-    backup_path = csv_path.replace(".csv", "_backup.csv")
-    if not os.path.exists(backup_path):
-        df.to_csv(backup_path, index=False, encoding='utf-8-sig')
-        print(f"[+] Đã tạo backup tại: {backup_path}")
         
     # Cập nhật cột battery_status
     df['battery_status'] = df.apply(
@@ -98,9 +104,10 @@ def clean_otodien_dataset(csv_path="data/raw/otodien_raw.csv"):
         axis=1
     )
     
-    # Lưu lại file
-    df.to_csv(csv_path, index=False, encoding='utf-8-sig')
-    print(f"[+] Đã ghi đè cập nhật vào: {csv_path}")
+    # Lưu ra data/interim/
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out_path, index=False, encoding='utf-8-sig')
+    print(f"[+] Đã lưu dữ liệu làm sạch B2C Ô tô điện vào: {out_path}")
     
     print("\n=== THỐNG KÊ KẾT QUẢ PHÂN LOẠI PIN ===")
     print(df['battery_status'].value_counts())

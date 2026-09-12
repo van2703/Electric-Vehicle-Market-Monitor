@@ -34,9 +34,9 @@ if sys.platform == 'win32':
         pass
 
 # ---------- Paths ----------
-BASE_DIR = Path(__file__).resolve().parent.parent
-RAW_PATH = BASE_DIR / "data" / "raw" / "chotot_xemay_raw.json"
-DICT_PATH = BASE_DIR / "data" / "raw" / "chotot_dictionary.json"
+BASE_DIR = Path(__file__).resolve().parents[2]
+RAW_PATH = BASE_DIR / "data" / "raw" / "c2c" / "chotot_xemay_raw.json"
+DICT_PATH = BASE_DIR / "data" / "dictionaries" / "chotot_dictionary.json"
 OUT_PATH = BASE_DIR / "data" / "interim" / "chotot_xemay_clean.csv"
 
 

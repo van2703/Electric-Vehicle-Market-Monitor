@@ -291,7 +291,10 @@ def fetch_otodien(base_url, pages=20):
     return all_cars
 
 if __name__ == "__main__":
-    os.makedirs("data/raw", exist_ok=True)
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    raw_dir = base_dir / "data" / "raw" / "b2c"
+    raw_dir.mkdir(parents=True, exist_ok=True)
     
     print("=== CÀO DỮ LIỆU B2C: Ô TÔ ĐIỆN (KÈM MÔ TẢ & BÓC TÁCH PIN) ===")
     oto_url = "https://otodien.vn/oto" 
@@ -299,8 +302,9 @@ if __name__ == "__main__":
 
     if oto_data:
         df_oto = pd.DataFrame(oto_data)
-        df_oto.to_csv("data/raw/otodien_raw.csv", index=False, encoding='utf-8-sig')
-        print(f"\n[+] XONG! Đã lưu {len(oto_data)} ô tô vào data/raw/otodien_raw.csv")
+        out_path = raw_dir / "otodien_raw.csv"
+        df_oto.to_csv(out_path, index=False, encoding='utf-8-sig')
+        print(f"\n[+] XONG! Đã lưu {len(oto_data)} ô tô vào {out_path}")
         print("\n=== THỐNG KÊ TÌNH TRẠNG PIN TỪ MÔ TẢ THỰC TẾ ===")
         print(df_oto['battery_status'].value_counts())
         print("\n--- XEM TRƯỚC 5 DÒNG CÓ ĐỦ MÔ TẢ & PIN ---")

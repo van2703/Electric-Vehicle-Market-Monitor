@@ -1,6 +1,6 @@
 """
-Liệt kê toàn bộ field có trong file JSON crawl từ chotot.
-Chạy: python scripts/list_fields.py
+Liệt kê toàn bộ field có trong file JSON crawl từ Chợ Tốt (Xe máy & Ô tô).
+Chạy: python scripts/cleaning/list_features.py
 """
 import json
 from pathlib import Path
@@ -15,10 +15,14 @@ if sys.platform == 'win32':
 
 
 def list_fields(json_path: Path) -> None:
+    if not json_path.exists():
+        print(f"[-] Không tìm thấy file: {json_path}")
+        return
+
     with open(json_path, encoding="utf-8") as f:
         records = json.load(f)
 
-    print("=" * 80)
+    print("\n" + "=" * 80)
     print(f"File: {json_path.name}")
     print(f"Số record: {len(records)}")
     print("=" * 80)
@@ -53,7 +57,6 @@ def list_fields(json_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    RAW = Path(__file__).resolve().parent.parent / "data" / "raw"
+    RAW = Path(__file__).resolve().parents[2] / "data" / "raw" / "c2c"
     list_fields(RAW / "chotot_xemay_raw.json")
-    # Sau này thêm ô tô:
-    # list_fields(RAW / "chotot_oto_raw.json")
+    list_fields(RAW / "chotot_oto_raw.json")

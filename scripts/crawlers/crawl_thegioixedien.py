@@ -4,6 +4,14 @@ import pandas as pd
 import time
 import os
 import re
+import sys
+
+# Đảm bảo console Windows in tiếng Việt UTF-8 không lỗi charmap
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -51,7 +59,10 @@ def fetch_thegioixedien(base_url, pages=2):
     return all_bikes
 
 if __name__ == "__main__":
-    os.makedirs("data/raw", exist_ok=True)
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    raw_dir = base_dir / "data" / "raw" / "b2c"
+    raw_dir.mkdir(parents=True, exist_ok=True)
     
     print("=== CÀO DỮ LIỆU: THẾ GIỚI XE ĐIỆN ===")
     tgxd_url = "https://thegioixedien.com.vn/avd33_xe-may-dien/"
@@ -59,7 +70,7 @@ if __name__ == "__main__":
     
     if tgxd_data:
         df_tgxd = pd.DataFrame(tgxd_data)
-        file_path = "data/raw/thegioixedien_raw.csv"
+        file_path = raw_dir / "thegioixedien_raw.csv"
         df_tgxd.to_csv(file_path, index=False, encoding='utf-8-sig')
         print(f"[+] XONG! Lưu {len(tgxd_data)} xe vào {file_path}")
         print("\n--- XEM TRƯỚC 5 DÒNG ĐẦU ---")

@@ -54,8 +54,11 @@ def fetch_data(params, output_filename, pages=20):
         time.sleep(1.5)  # Nghỉ tránh bị giới hạn tần suất
         
     # Lưu file JSON
-    os.makedirs("data/raw", exist_ok=True)
-    file_path = f"data/raw/{output_filename}"
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parents[2]
+    raw_dir = base_dir / "data" / "raw" / "c2c"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    file_path = raw_dir / output_filename
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(all_ads, f, ensure_ascii=False, indent=2)
     print(f"[*] XONG! Đã lưu {len(all_ads)} tin duy nhất vào: {file_path}\n")
