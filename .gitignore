@@ -1,4 +1,5 @@
 .eda_dependencies/
+.scripts/
 figures/.mplconfig/
 **/.ipynb_checkpoints/
 **/__pycache__/
