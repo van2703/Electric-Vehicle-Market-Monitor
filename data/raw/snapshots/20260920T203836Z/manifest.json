@@ -1,0 +1,23 @@
+{
+  "query_scope": "national first 20 pages; source ordering; not representative",
+  "records": 100,
+  "unique_ids": 50,
+  "pages": [
+    {
+      "page": 0,
+      "url": "https://gateway.chotot.com/v1/public/ad-listing?cg=2010&fuel=4&carbrand=80&limit=50&offset=0",
+      "fetched_at_utc": "2026-09-20T20:38:36.287787+00:00",
+      "status": 200,
+      "rows": 50,
+      "new_ids": 50
+    },
+    {
+      "page": 1,
+      "url": "https://gateway.chotot.com/v1/public/ad-listing?cg=2010&fuel=4&carbrand=80&limit=50&offset=50",
+      "fetched_at_utc": "2026-09-20T20:38:38.367753+00:00",
+      "status": 200,
+      "rows": 50,
+      "new_ids": 0
+    }
+  ]
+}
