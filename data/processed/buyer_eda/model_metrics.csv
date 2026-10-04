@@ -1,0 +1,4 @@
+Mô hình,MAE (triệu VNĐ),R²
+Baseline (Median/Family),38.63,0.9504
+Linear Regression,30.69,0.9698
+Random Forest,29.3,0.9704

@@ -31,10 +31,12 @@ MANIFEST
 venv/
 ENV/
 env/
+.eda_dependencies/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 */.ipynb_checkpoints/*
+**/.ipynb_checkpoints/
 
 # Backups and temporary files
 *.bak
@@ -48,6 +50,7 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 *.parquet
+figures/.mplconfig/
 
 # IDE and Editor settings
 .vscode/

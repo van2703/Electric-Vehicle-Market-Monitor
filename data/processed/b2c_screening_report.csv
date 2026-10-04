@@ -1,0 +1,4 @@
+﻿source,total_records,service_flagged,price_null,price_non_positive,low_price_flagged,upfront_price_flagged,records_after_screening,retention_pct
+otodien,287,1,0,0,0,13,273,95.1
+phoxedien,373,0,0,0,0,0,373,100.0
+thegioixedien,43,0,0,0,0,0,43,100.0

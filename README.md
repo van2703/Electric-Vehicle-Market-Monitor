@@ -1,6 +1,31 @@
-# 🚗 Electric Vehicle Market Monitor (Vietnam)
+# ⚡ Electric Vehicle Market Monitor (Vietnam)
 
-Hệ thống theo dõi, thu thập dữ liệu đa nguồn (C2C, B2C, Chính hãng) và chuẩn hoá phân tích thị trường xe điện (Ô tô điện & Xe máy điện) tại Việt Nam.
+> Hệ thống theo dõi, thu thập dữ liệu đa nguồn (C2C, B2C, Chính hãng), chuẩn hoá và phân tích thị trường xe điện (Ô tô điện & Xe máy điện) tại Việt Nam — cung cấp thông tin thị trường minh bạch, mô hình định giá xe và ứng dụng phân tích tương tác hỗ trợ người mua xe.
+
+---
+
+## 📑 Mục lục / Table of Contents
+
+- [Mục tiêu dự án (Project Goal)](#-mục-tiêu-dự-án-project-goal)
+- [Cấu trúc thư mục (Directory Structure)](#-cấu-trúc-thư-mục-dự-án)
+- [Nguồn dữ liệu (Data Sources)](#-nguồn-dữ-liệu-data-sources)
+- [Luồng xử lý dữ liệu (Data Pipeline Architecture)](#-luồng-xử-lý-dữ-liệu-data-pipeline-architecture)
+- [Giai đoạn phân tích & Mô hình (EDA & Modeling)](#-giai-đoạn-phân-tích--mô-hình-eda--modeling)
+- [Ứng dụng Web tương tác (Streamlit Web App)](#-ứng-dụng-web-tương-tác-streamlit-web-app)
+- [Hướng dẫn cài đặt & Thực thi (Getting Started)](#-hướng-dẫn-cài-đặt--thực-thi)
+- [Nguyên tắc thiết kế & Giới hạn (Principles & Limitations)](#-nguyên-tắc-thiết-kế--giới-hạn)
+- [Bản quyền (License)](#-bản-quyền-license)
+
+---
+
+## 🎯 Mục tiêu dự án (Project Goal)
+
+Theo dõi và phân tích thị trường xe điện tại Việt Nam (tập trung trọng điểm vào hệ sinh thái xe điện VinFast):
+1. **Thu thập (Collection):** Dữ liệu tin rao thời gian thực từ sàn C2C (Chợ Tốt) và các nền tảng showroom B2C (Ô Tô Điện, Phố Xe Điện, Thế Giới Xe Điện).
+2. **Làm sạch & Bảo mật (Cleaning & PDPD Compliance):** Ẩn thông tin cá nhân (SĐT, địa chỉ), trích xuất tình trạng pin (kèm pin / thuê pin), khử trùng lặp và chuẩn hóa dữ liệu.
+3. **Giá chuẩn tham chiếu (Benchmarking):** Xây dựng ma trận giá niêm yết chính hãng và giá thị trường theo năm sản xuất để tính toán tỷ lệ khấu hao.
+4. **Phân tích chuyên sâu (EDA & Decision Support):** Phân tích tương quan giá - ODO, chênh lệch giá xe mới vs cũ, chi phí năng lượng và xu hướng thị trường.
+5. **Ứng dụng & Mô hình (Machine Learning & Web App):** Huấn luyện mô hình Random Forest Regressor dự đoán giá xe và triển khai ứng dụng tương tác Streamlit.
 
 ---
 
@@ -10,15 +35,22 @@ Dự án được tổ chức theo chuẩn **Modular Data Science Project**:
 
 ```text
 Electric-Vehicle-Market-Monitor/
+├── app/                             # Module ứng dụng Web (Streamlit UI)
+│   ├── charts.py                    # Khởi tạo biểu đồ trực quan tương tác
+│   ├── data_loader.py               # Tải và tiền xử lý dữ liệu cho dashboard
+│   └── model_loader.py              # Nạp mô hình ML dự đoán giá
+├── app.py                           # Điểm chạy chính của Streamlit Web App
+│
 ├── data/
 │   ├── raw/                         # 1. DỮ LIỆU GỐC THU THẬP (RAW UNTOUCHED)
-│   │   ├── c2c/                     # Nguồn tin rao cá nhân (Chợ Tốt)
+│   │   ├── c2c/                     # Tin rao C2C (Chợ Tốt ô tô & xe máy điện)
 │   │   │   ├── chotot_oto_raw.json
 │   │   │   └── chotot_xemay_raw.json
-│   │   └── b2c/                     # Nguồn showroom, đại lý kinh doanh
-│   │       ├── otodien_raw.csv
-│   │       ├── phoxedien_raw.csv
-│   │       └── thegioixedien_raw.csv
+│   │   ├── b2c/                     # Showroom & đại lý B2C
+│   │   │   ├── otodien_raw.csv
+│   │   │   ├── phoxedien_raw.csv
+│   │   │   └── thegioixedien_raw.csv
+│   │   └── snapshots/               # Các snapshot thời gian thực của tin rao
 │   │
 │   ├── dictionaries/                # 2. TỪ ĐIỂN & METADATA PHÂN LOẠI
 │   │   ├── chotot_dictionary.json   # Metadata Brand, Model, Option, Địa phương
@@ -33,44 +65,79 @@ Electric-Vehicle-Market-Monitor/
 │   │
 │   ├── interim/                     # 4. DỮ LIỆU LÀM SẠCH CẤP NGUỒN (INTERIM)
 │   │   ├── chotot_oto_clean.csv     # Dữ liệu ô tô sạch tinh gọn
-│   │   └── chotot_xemay_clean.csv   # Dữ liệu xe máy sạch tinh gọn
+│   │   ├── chotot_xemay_clean.csv   # Dữ liệu xe máy sạch tinh gọn
+│   │   ├── otodien_clean.csv        # Dữ liệu showroom ô tô điện làm sạch
+│   │   ├── phoxedien_clean.csv      # Dữ liệu xe máy phố xe điện
+│   │   └── thegioixedien_clean.csv  # Dữ liệu thế giới xe điện
 │   │
-│   └── processed/                   # 5. DỮ LIỆU HỢP NHẤT PHỤC VỤ PHÂN TÍCH
-│       └── ev_market_cleaned.csv    # Dữ liệu sạch hoàn chỉnh kèm benchmark & khấu hao
+│   ├── processed/                   # 5. DỮ LIỆU HỢP NHẤT PHỤC VỤ PHÂN TÍCH
+│   │   ├── ev_market_cleaned.csv    # Dữ liệu thị trường xe điện hợp nhất & tính khấu hao
+│   │   └── buyer_eda/               # Dữ liệu phục vụ phân tích quyết định mua sắm
+│   │       ├── screened_listings.csv
+│   │       ├── official_price_reference.csv
+│   │       ├── buyer_comparison_candidates.csv
+│   │       ├── matched_new_used_gap.csv
+│   │       └── model_metrics.csv
+│   │
+│   └── external/                    # Dữ liệu tham chiếu bên thứ ba & snapshot hãng
+│
+├── data visualization/              # Jupyter Notebooks EDA phân tích thực nghiệm
+│   ├── 01_eda_vinfast_oto.ipynb     # Phân tích nguồn cung, phân bố giá & thông điệp bán lẻ
+│   └── 02_vinfast_buyer_eda.ipynb   # Hỗ trợ quyết định mua sắm & so sánh giá xe
+│
+├── figures/                         # Các biểu đồ tĩnh trích xuất chất lượng cao (PNG)
+│
+├── models/                          # Mô hình Machine Learning đã huấn luyện
+│   └── price_model.joblib           # Pipeline Random Forest dự đoán giá xe
+│
+├── notebooks/                       # Notebooks thử nghiệm & pipeline
+│   ├── 01_profile_chotot.ipynb      # Khảo sát dữ liệu Chợ Tốt
+│   └── 04_vinfast_price_model.ipynb # Khảo sát & so khớp mô hình định giá
 │
 ├── scripts/                         # Toàn bộ mã nguồn thu thập & xử lý dữ liệu
 │   ├── crawlers/                    # Thu thập dữ liệu từ các sàn & website đại lý
-│   │   ├── crawl_chotot.py          # Cào tin rao C2C Chợ Tốt (Ô tô & Xe máy điện)
-│   │   ├── crawl_chotot_dictionary.py # Cào từ điển Brand, Model, Địa phương Chợ Tốt
-│   │   ├── crawl_otodien.py         # Cào showroom Ô tô điện (otodien.vn)
-│   │   ├── crawl_phoxedien.py       # Cào đại lý Phố Xe Điện (phoxedien.com)
-│   │   └── crawl_thegioixedien.py   # Cào đại lý Thế Giới Xe Điện (thegioixedien.com.vn)
-│   │
-│   ├── cleaning/                    # Làm sạch & trích xuất feature chuyên sâu (Interim)
-│   │   ├── clean_chotot_oto.py      # Làm sạch ô tô Chợ Tốt -> data/interim/chotot_oto_clean.csv
-│   │   ├── clean_chotot_xemay.py    # Làm sạch xe máy Chợ Tốt -> data/interim/chotot_xemay_clean.csv
-│   │   ├── clean_otodien.py         # Chuẩn hoá & phân loại pin salon otodien
-│   │   └── list_features.py         # Thống kê coverage trường dữ liệu JSON
-│   │
+│   │   ├── crawl_chotot.py
+│   │   ├── crawl_chotot_dictionary.py
+│   │   ├── crawl_otodien.py
+│   │   ├── crawl_phoxedien.py
+│   │   └── crawl_thegioixedien.py
+│   ├── cleaning/                    # Làm sạch & trích xuất đặc trưng (Interim)
+│   │   ├── clean_chotot_oto.py
+│   │   ├── clean_chotot_xemay.py
+│   │   ├── clean_otodien.py
+│   │   └── list_features.py
 │   ├── benchmark/                   # Tạo khung giá tham chiếu (Benchmark Baseline)
-│   │   ├── build_benchmark_frame.py # Bóc tách danh mục Model thực tế từ dữ liệu cào
-│   │   ├── scrape_benchmark.py      # Cào giá benchmark từ Bonbanh & đại lý
-│   │   └── create_benchmark_timeline.py # Tạo ma trận giá benchmark 2D theo năm sản xuất
-│   │
+│   │   ├── build_benchmark_frame.py
+│   │   ├── scrape_benchmark.py
+│   │   └── create_benchmark_timeline.py
 │   └── pipeline/                    # Pipeline tích hợp tạo dữ liệu phân tích cuối
-│       └── data_processing.py       # Ghép nối, tính khấu hao & sinh ev_market_cleaned.csv
+│       └── data_processing.py
 │
-├── notebooks/                       # Phân tích khám phá dữ liệu (EDA), Profiling
-│   └── 01_profile_chotot.ipynb      # Notebook phân tích dữ liệu Chợ Tốt
-│
-├── .gitignore                       # Cấu hình bỏ qua môi trường ảo, cache, file tạm
-├── requirements.txt                 # Các thư viện phụ thuộc của dự án
+├── train_model.py                   # Script huấn luyện mô hình ML (Linear vs Random Forest)
+├── discovery_report.py              # Script tự động trích xuất dataset discovery profiling
+├── presentation_outline.md          # Đề cương bài báo cáo / thuyết trình
+├── presentation_script.md           # Kịch bản thuyết trình (Tiếng Việt)
+├── presentation_script_en.md        # Kịch bản thuyết trình (Tiếng Anh)
+├── requirements.txt                 # Danh mục thư viện phụ thuộc toàn dự án
+├── .gitignore                       # Quy tắc loại trừ tệp tạm, môi trường ảo
 └── README.md                        # Tài liệu hướng dẫn sử dụng và kiến trúc dự án
 ```
 
 ---
 
-## 🔄 Luồng xử lý dữ liệu (Data Pipeline Flow)
+## 🌐 Nguồn dữ liệu (Data Sources)
+
+| Nguồn | Loại hình | Phương thức | Đối tượng xe | Đầu ra dữ liệu |
+|-------|-----------|-------------|--------------|----------------|
+| **Chợ Tốt** (chotot.com) | Sàn C2C | REST API (`gateway.chotot.com`) | Ô tô & Xe máy điện | `chotot_oto_raw.json`, `chotot_xemay_raw.json` |
+| **Ô Tô Điện** (otodien.vn) | Đại lý B2C | HTML Scraping (BeautifulSoup) | Ô tô điện | `otodien_raw.csv` |
+| **Phố Xe Điện** (phoxedien.com) | Đại lý B2C | HTML Scraping (BeautifulSoup) | Xe máy điện | `phoxedien_raw.csv` |
+| **Thế Giới Xe Điện** (thegioixedien.com.vn) | Đại lý B2C | HTML Scraping (BeautifulSoup) | Xe máy điện | `thegioixedien_raw.csv` |
+| **VinFast Official** | Giá niêm yết OEM | HTML / Parsing tham chiếu | VF 3, 5, 6, 7, 8, 9 | `data/external/`, `data/benchmark/` |
+
+---
+
+## 🔄 Luồng xử lý dữ liệu (Data Pipeline Architecture)
 
 ```mermaid
 flowchart TD
@@ -108,6 +175,13 @@ flowchart TD
     subgraph S4["4. Pipeline & Valuation"]
         P1["data_processing.py"]
         OUT["data/processed/<br/>ev_market_cleaned.csv"]
+        BUYER["data/processed/buyer_eda/<br/>screened_listings.csv"]
+    end
+
+    subgraph S5["5. Modeling & Application"]
+        TRAIN["train_model.py"]
+        MODEL["models/price_model.joblib"]
+        APP["app.py (Streamlit Web App)"]
     end
 
     C1 --> R_C2C
@@ -120,7 +194,30 @@ flowchart TD
     CL3 --> I3
     R_C2C & R_B2C --> B1 --> B2 --> B3 --> BM
     I1 & I2 & BM --> P1 --> OUT
+    I1 --> BUYER --> TRAIN --> MODEL
+    MODEL & BUYER --> APP
 ```
+
+---
+
+## 📊 Giai đoạn phân tích & Mô hình (EDA & Modeling)
+
+### 1. Phân tích khám phá (EDA)
+- **Notebook 01 — Phân tích Cung - Cầu & Định giá:** Khảo sát độ phủ dữ liệu, phân bố giá theo model (VF 3 -> VF 9), tương quan ODO với giá rao bán, phân tích các từ khóa ưu đãi (pin, góp, voucher).
+- **Notebook 02 — Hỗ trợ quyết định Người mua (Buyer Decision Support):** So sánh chênh lệch giữa xe mới và xe đã qua sử dụng, ma trận ngân sách, mô hình chi phí năng lượng sạc điện so với xăng truyền thống.
+
+### 2. Mô hình dự đoán giá xe (Price Prediction Model)
+- Sử dụng **Random Forest Regressor** kết hợp **One-Hot Encoding** cho các biến phân loại (`family`, `condition`, `province`, `battery_status`) và chuẩn hóa các biến số (`year`, `mileage_km`).
+- Mô hình được lưu tại [models/price_model.joblib](file:///d:/Workspace/b3/Data%20Science/ev%20monitor/models/price_model.joblib) và được tích hợp trực tiếp vào giao diện Streamlit.
+
+---
+
+## 💻 Ứng dụng Web tương tác (Streamlit Web App)
+
+Ứng dụng web được xây dựng bằng Streamlit cho phép người dùng:
+1. **Tổng quan thị trường:** Bộ lọc đa chiều theo Dòng xe, Tỉnh thành, Tình trạng xe và xem phân bố giá trực quan.
+2. **So sánh New vs Used:** Xem mức độ chênh lệch giá trị và tỷ lệ khấu hao thực tế.
+3. **Dự toán giá xe thông minh:** Nhập thông tin xe (dòng xe, năm sx, số km đã đi, tình trạng pin, vị trí) để nhận dự báo khoảng giá thị trường hợp lý.
 
 ---
 
@@ -129,9 +226,11 @@ flowchart TD
 ### 1. Cài đặt môi trường
 ```bash
 python -m venv .venv
-# Trên Windows (PowerShell):
+
+# Kích hoạt trên Windows PowerShell:
 .venv\Scripts\Activate.ps1
-# Cài đặt thư viện:
+
+# Cài đặt toàn bộ thư viện:
 pip install -r requirements.txt
 ```
 
@@ -151,33 +250,48 @@ python scripts/crawlers/crawl_thegioixedien.py
 
 ### 3. Làm sạch dữ liệu (Interim Cleaning)
 ```bash
-# Làm sạch dữ liệu Chợ Tốt Ô tô (-> data/interim/):
 python scripts/cleaning/clean_chotot_oto.py
-
-# Làm sạch dữ liệu Chợ Tốt Xe máy (-> data/interim/):
 python scripts/cleaning/clean_chotot_xemay.py
-
-# Làm sạch dữ liệu đại lý Ô tô điện:
 python scripts/cleaning/clean_otodien.py
-
-# Kiểm tra coverage thuộc tính JSON:
 python scripts/cleaning/list_features.py
 ```
 
 ### 4. Tạo bộ chuẩn giá tham chiếu (Benchmark)
 ```bash
-# Xây dựng danh sách model thực tế từ dữ liệu cào:
 python scripts/benchmark/build_benchmark_frame.py
-
-# Cào giá benchmark và hoàn thiện bảng giá:
 python scripts/benchmark/scrape_benchmark.py
-
-# Tạo ma trận timeline giá theo năm sản xuất (-> data/benchmark/):
 python scripts/benchmark/create_benchmark_timeline.py
 ```
 
-### 5. Xử lý dữ liệu hoàn chỉnh (Final Processed)
+### 5. Xử lý dữ liệu hoàn chỉnh (Pipeline Processing)
 ```bash
-# Hợp nhất dữ liệu, tính khấu hao & trích xuất đặc trưng phục vụ phân tích / mô hình:
 python scripts/pipeline/data_processing.py
 ```
+
+### 6. Huấn luyện mô hình định giá & Chạy Web App
+```bash
+# Huấn luyện lại mô hình ML:
+python train_model.py
+
+# Khởi chạy ứng dụng Streamlit:
+streamlit run app.py
+```
+
+---
+
+## ⚖️ Nguyên tắc thiết kế & Giới hạn (Principles & Limitations)
+
+### Nguyên tắc thiết kế (Principles)
+- **Tính bất biến của dữ liệu gốc:** Không ghi đè hoặc chỉnh sửa trực tiếp dữ liệu thô trong `data/raw/`.
+- **Tuân thủ quy chuẩn PDPD:** Toàn bộ thông tin cá nhân (số điện thoại, địa chỉ cụ thể) được ẩn danh tự động trước khi công bố phân tích.
+- **Tách biệt dữ liệu:** Tách bạch rõ ràng giữa tin rao cá nhân C2C, giá niêm yết showroom B2C và giá hãng OEM.
+
+### Giới hạn (Limitations)
+- Dữ liệu phản ánh **giá chào bán (asking prices)** trên các sàn giao dịch trực tuyến, không phải giá chốt giao dịch thực tế.
+- Tình trạng pin được nhận diện thông qua thuật toán bóc tách từ khóa văn bản trên tiêu đề và mô tả của người bán.
+
+---
+
+## 📄 Bản quyền (License)
+
+Dự án phục vụ mục đích nghiên cứu và giáo dục. Dữ liệu được trích xuất từ các trang công khai và trang chính thức của nhà sản xuất. Không lưu trữ thông tin nhận dạng cá nhân.
