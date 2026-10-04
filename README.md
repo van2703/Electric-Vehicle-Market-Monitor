@@ -24,7 +24,6 @@
 
 ---
 
-
 ## Project Goal
 
 Monitor and analyze the **Vietnamese electric vehicle market** — focusing primarily on VinFast cars — by:
@@ -144,7 +143,7 @@ Electric-Vehicle-Market-Monitor/
 │           ├── VF6.html / VF6.txt
 │           ├── VF7.html / VF7.txt
 │           ├── VF8.html / VF8.txt
-│           ├── VF9.html / VF9.txt
+│           ├── VF9.html / VF9.
 │           ├── chotot_probe.json
 │           ├── otodien_probe.html / .txt
 │           └── manifest.json
