@@ -10,6 +10,13 @@ Saves: models/price_model.joblib
 import warnings
 warnings.filterwarnings("ignore")
 
+import sys
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 import numpy as np
 import pandas as pd
 import matplotlib
