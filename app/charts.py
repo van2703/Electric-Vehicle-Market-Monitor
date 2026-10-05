@@ -1,200 +1,307 @@
 """
 app/charts.py
 -------------
-Chart-building functions used by the Market Overview page.
-All charts return Plotly Figure objects for rendering in Streamlit.
+Các hàm khởi tạo biểu đồ Plotly tương tác cho ứng dụng:
+1. plot_price_forecast_curve(): Đường giá dự báo 12 tháng kèm dải tin cậy và điểm chạm đáy.
+2. plot_historical_timeline(): Lịch sử giá niêm yết qua các năm (Kèm pin vs Thuê pin).
+3. plot_price_vs_odo(): Tương quan Giá rao bán vs Số km ODO thực tế.
+4. plot_head_to_head_bars(): So sánh trực quan đối đầu giữa 2 mẫu xe.
+5. plot_tco_comparison(): Biểu đồ chi phí vận hành xe điện vs xe xăng trong 1 - 3 năm.
 """
 
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import numpy as np
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
 
-# ─── Shared colour palette ─────────────────────────────────────────────────────
-PALETTE = px.colors.qualitative.Bold
-FONT_FAMILY = "Inter, sans-serif"
+FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+
 
 def _apply_theme(fig: go.Figure, title: str = "") -> go.Figure:
-    """Apply a clean, modern dark-ish theme to any Plotly figure."""
+    """Áp dụng theme hiện đại, tinh tế cho biểu đồ Plotly."""
     fig.update_layout(
-        title=dict(text=title, font=dict(size=16, family=FONT_FAMILY, color="#1e293b"), x=0),
+        title=dict(
+            text=f"<b>{title}</b>" if title else "",
+            font=dict(size=16, family=FONT_FAMILY, color="#0f172a"),
+            x=0.01,
+            y=0.96
+        ),
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(248,250,252,0.8)",
+        plot_bgcolor="rgba(248, 250, 252, 0.7)",
         font=dict(family=FONT_FAMILY, color="#334155"),
-        margin=dict(t=55, b=40, l=40, r=20),
-        legend=dict(bgcolor="rgba(255,255,255,0.85)", bordercolor="#e2e8f0", borderwidth=1),
-    )
-    fig.update_xaxes(gridcolor="#e2e8f0", zerolinecolor="#cbd5e1")
-    fig.update_yaxes(gridcolor="#e2e8f0", zerolinecolor="#cbd5e1")
-    return fig
-
-
-# ─── 1. Số lượng tin theo dòng xe ──────────────────────────────────────────────
-def chart_listing_count(df: pd.DataFrame) -> go.Figure:
-    counts = (
-        df.groupby("family")
-        .size()
-        .reset_index(name="count")
-        .sort_values("count", ascending=True)
-    )
-    fig = px.bar(
-        counts, x="count", y="family", orientation="h",
-        color="count", color_continuous_scale="Blues",
-        text="count", labels={"count": "Số tin", "family": "Dòng xe"},
-    )
-    fig.update_traces(textposition="outside")
-    fig.update_coloraxes(showscale=False)
-    return _apply_theme(fig, "📊 Số lượng tin đăng theo dòng xe")
-
-
-# ─── 2. Phân phối giá (linear + log) ───────────────────────────────────────────
-def chart_price_distribution(df: pd.DataFrame) -> go.Figure:
-    fig = make_subplots(
-        rows=1, cols=2,
-        subplot_titles=["Trục tuyến tính", "Trục log (phát hiện đuôi dài)"],
-        horizontal_spacing=0.12,
-    )
-    prices = df["price_million"].dropna()
-
-    # Linear
-    fig.add_trace(
-        go.Histogram(x=prices, nbinsx=40, marker_color="#3b82f6",
-                     opacity=0.8, name="Giá (linear)"),
-        row=1, col=1,
-    )
-    # Log
-    log_prices = np.log10(prices.clip(lower=1))
-    fig.add_trace(
-        go.Histogram(x=log_prices, nbinsx=40, marker_color="#10b981",
-                     opacity=0.8, name="Giá (log10)"),
-        row=1, col=2,
-    )
-    fig.update_xaxes(title_text="Triệu VNĐ", row=1, col=1)
-    fig.update_xaxes(title_text="log₁₀(Triệu VNĐ)", row=1, col=2)
-    fig.update_yaxes(title_text="Số tin", row=1, col=1)
-    fig.update_layout(showlegend=False, paper_bgcolor="rgba(0,0,0,0)",
-                      plot_bgcolor="rgba(248,250,252,0.8)",
-                      font=dict(family=FONT_FAMILY))
-    fig.update_xaxes(gridcolor="#e2e8f0")
-    fig.update_yaxes(gridcolor="#e2e8f0")
-    return fig
-
-
-# ─── 3. Box plot giá theo dòng xe ──────────────────────────────────────────────
-def chart_price_by_family(df: pd.DataFrame) -> go.Figure:
-    # Sort families by median price
-    medians = df.groupby("family")["price_million"].median().sort_values()
-    ordered = medians.index.tolist()
-
-    fig = px.box(
-        df, x="family", y="price_million",
-        category_orders={"family": ordered},
-        color="family",
-        color_discrete_sequence=PALETTE,
-        labels={"family": "Dòng xe", "price_million": "Giá (triệu VNĐ)"},
-        points="outliers",
-    )
-    # Overlay median markers
-    for fam, med in medians.items():
-        fig.add_annotation(
-            x=fam, y=med,
-            text=f"{med:.0f}",
-            showarrow=False,
-            font=dict(size=9, color="#1e293b"),
-            yshift=14,
+        margin=dict(t=50, b=40, l=45, r=25),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            bgcolor="rgba(255, 255, 255, 0.8)",
+            bordercolor="#e2e8f0",
+            borderwidth=1
+        ),
+        hoverlabel=dict(
+            bgcolor="#0f172a",
+            font_size=12,
+            font_family=FONT_FAMILY,
+            font_color="white"
         )
-    fig.update_layout(showlegend=False)
-    return _apply_theme(fig, "💰 Phân phối giá theo dòng xe (kèm trung vị)")
-
-
-# ─── 4. Xe mới vs. cũ theo dòng xe ────────────────────────────────────────────
-def chart_new_vs_used(df: pd.DataFrame) -> go.Figure:
-    counts = (
-        df.groupby(["family", "condition"])
-        .size()
-        .reset_index(name="count")
     )
-    # Order by total count
-    total = counts.groupby("family")["count"].sum().sort_values(ascending=False)
-    fig = px.bar(
-        counts, x="family", y="count", color="condition",
-        category_orders={
-            "family": total.index.tolist(),
-            "condition": ["New", "Used"],
-        },
-        color_discrete_map={"New": "#3b82f6", "Used": "#f59e0b"},
-        barmode="group",
-        labels={"family": "Dòng xe", "count": "Số tin", "condition": "Tình trạng"},
+    fig.update_xaxes(
+        gridcolor="#e2e8f0",
+        zerolinecolor="#cbd5e1",
+        showline=True,
+        linecolor="#cbd5e1"
     )
-    return _apply_theme(fig, "🆕 Xe mới vs. xe cũ theo dòng xe")
+    fig.update_yaxes(
+        gridcolor="#e2e8f0",
+        zerolinecolor="#cbd5e1",
+        showline=True,
+        linecolor="#cbd5e1"
+    )
+    return fig
 
 
-# ─── 5. Predicted vs Actual scatter (Model Performance page) ───────────────────
-def chart_pred_vs_actual(
-    y_test: list, y_pred: list, model_name: str, mae: float, r2: float
+def plot_price_forecast_curve(
+    forecast_df: pd.DataFrame,
+    current_price: float,
+    model_name: str
 ) -> go.Figure:
-    y_test_arr = np.array(y_test)
-    y_pred_arr = np.array(y_pred)
+    """Biểu đồ dự phóng giá 12 tháng tới kèm dải tin cậy 90%."""
+    fig = go.Figure()
 
-    lo = min(y_test_arr.min(), y_pred_arr.min()) - 20
-    hi = max(y_test_arr.max(), y_pred_arr.max()) + 20
+    # Dải tin cậy trên và dưới (Shaded Area)
+    fig.add_trace(go.Scatter(
+        x=forecast_df["date_str"],
+        y=forecast_df["price_max"],
+        mode="lines",
+        line=dict(width=0),
+        showlegend=False,
+        hoverinfo="skip"
+    ))
+    fig.add_trace(go.Scatter(
+        x=forecast_df["date_str"],
+        y=forecast_df["price_min"],
+        mode="lines",
+        line=dict(width=0),
+        fill="tonexty",
+        fillcolor="rgba(59, 130, 246, 0.12)",
+        name="Dải tin cậy 90%",
+        hoverinfo="skip"
+    ))
+
+    # Đường giá dự báo chính
+    fig.add_trace(go.Scatter(
+        x=forecast_df["date_str"],
+        y=forecast_df["pred_price"],
+        mode="lines+markers",
+        line=dict(color="#2563eb", width=3.5),
+        marker=dict(size=7, color="#1d4ed8"),
+        name="Giá dự báo trung bình",
+        hovertemplate="<b>%{x}</b><br>Giá dự báo: <b>%{y:,.1f} triệu VNĐ</b><extra></extra>"
+    ))
+
+    # Điểm chạm đáy (Thời điểm vàng để mua)
+    best_row = forecast_df[forecast_df["is_best_time"]].iloc[0]
+    fig.add_trace(go.Scatter(
+        x=[best_row["date_str"]],
+        y=[best_row["pred_price"]],
+        mode="markers+text",
+        marker=dict(size=14, color="#10b981", symbol="star", line=dict(color="#047857", width=2)),
+        text=["🌟 Đáy giá"],
+        textposition="bottom center",
+        textfont=dict(color="#047857", size=12, family=FONT_FAMILY),
+        name="Thời điểm mua tốt nhất",
+        hovertemplate="<b>THỜI ĐIỂM VÀNG (%{x})</b><br>Giá đáy: <b>%{y:,.1f} triệu VNĐ</b><br>Tiết kiệm: <b>" + f"{best_row['saving_vs_now']:,.1f} tr</b><extra></extra>"
+    ))
+
+    # Đường tham chiếu giá hiện tại
+    fig.add_hline(
+        y=current_price,
+        line_dash="dot",
+        line_color="#94a3b8",
+        line_width=1.5,
+        annotation_text=f"Hiện tại: {current_price:,.0f} tr",
+        annotation_position="top left",
+        annotation_font=dict(size=11, color="#64748b")
+    )
+
+    _apply_theme(fig, f"Dự báo Xu hướng Giá 12 Tháng Tới — {model_name}")
+    fig.update_xaxes(title="Tháng dự báo")
+    fig.update_yaxes(title="Giá xe (Triệu VNĐ)")
+    return fig
+
+
+def plot_historical_timeline(bench_df: pd.DataFrame, selected_model: str) -> go.Figure:
+    """Biểu đồ lịch sử giá niêm yết qua các năm (Kèm pin vs Thuê pin)."""
+    fig = go.Figure()
+
+    df_sub = bench_df[bench_df["Model"] == selected_model].sort_values("Year")
+    if df_sub.empty:
+        return fig
+
+    # Đường giá kèm pin
+    fig.add_trace(go.Scatter(
+        x=df_sub["Year"],
+        y=df_sub["price_with_bat_million"],
+        mode="lines+markers+text",
+        line=dict(color="#059669", width=3),
+        marker=dict(size=9, color="#047857"),
+        text=[f"{v:,.0f} tr" for v in df_sub["price_with_bat_million"]],
+        textposition="top center",
+        name="Giá Kèm Pin",
+        hovertemplate="Năm: %{x}<br>Kèm Pin: <b>%{y:,.0f} triệu</b><extra></extra>"
+    ))
+
+    # Đường giá thuê pin
+    fig.add_trace(go.Scatter(
+        x=df_sub["Year"],
+        y=df_sub["price_no_bat_million"],
+        mode="lines+markers+text",
+        line=dict(color="#d97706", width=3, dash="dash"),
+        marker=dict(size=9, color="#b45309"),
+        text=[f"{v:,.0f} tr" for v in df_sub["price_no_bat_million"]],
+        textposition="bottom center",
+        name="Giá Thuê Pin (Không pin)",
+        hovertemplate="Năm: %{x}<br>Thuê Pin: <b>%{y:,.0f} triệu</b><extra></extra>"
+    ))
+
+    _apply_theme(fig, f"Lịch sử Biến động Giá Niêm yết Chính hãng — {selected_model}")
+    fig.update_xaxes(title="Năm sản xuất / Mở bán", dtick=1)
+    fig.update_yaxes(title="Giá niêm yết (Triệu VNĐ)")
+    return fig
+
+
+def plot_price_vs_odo(df_listings: pd.DataFrame, model_name: str) -> go.Figure:
+    """Biểu đồ phân tán ODO vs Giá chào bán thực tế trên thị trường."""
+    fig = go.Figure()
+    if df_listings.empty or "odo_km" not in df_listings.columns:
+        return fig
+
+    df_used = df_listings[
+        (df_listings["condition"] == "Used") &
+        (df_listings["odo_km"] > 0) &
+        (df_listings["odo_km"] < 150000)
+    ].copy()
+
+    if df_used.empty:
+        return fig
+
+    fig.add_trace(go.Scatter(
+        x=df_used["odo_km"],
+        y=df_used["price_million"],
+        mode="markers",
+        marker=dict(
+            size=8,
+            color="#3b82f6",
+            opacity=0.65,
+            line=dict(color="#1d4ed8", width=1)
+        ),
+        name="Tin rao thực tế",
+        hovertemplate="ODO: <b>%{x:,.0f} km</b><br>Giá: <b>%{y:,.0f} tr</b><extra></extra>"
+    ))
+
+    # Đường hồi quy xu hướng
+    try:
+        m, b = np.polyfit(df_used["odo_km"], df_used["price_million"], 1)
+        x_trend = np.linspace(df_used["odo_km"].min(), df_used["odo_km"].max(), 50)
+        y_trend = m * x_trend + b
+        fig.add_trace(go.Scatter(
+            x=x_trend,
+            y=y_trend,
+            mode="lines",
+            line=dict(color="#ef4444", width=2.5, dash="dot"),
+            name="Đường trượt giá theo ODO",
+            hoverinfo="skip"
+        ))
+    except Exception:
+        pass
+
+    _apply_theme(fig, f"Tương quan Số Km Đã Đi (ODO) và Giá Rao Bán — {model_name}")
+    fig.update_xaxes(title="Số km đã lăn bánh (ODO)", tickformat=",.0f")
+    fig.update_yaxes(title="Giá chào bán (Triệu VNĐ)")
+    return fig
+
+
+def plot_head_to_head_bars(car1: dict, car2: dict) -> go.Figure:
+    """So sánh trực quan hai dòng xe trên nhiều chỉ số."""
+    categories = ["Giá hiện tại (tr)", "Giá dự báo 1 năm (tr)", "Tầm vận hành (km)", "Công suất (hp)"]
+    v1 = [car1["price"], car1["future_price"], car1["range"], car1["power"]]
+    v2 = [car2["price"], car2["future_price"], car2["range"], car2["power"]]
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=y_test_arr, y=y_pred_arr, mode="markers",
-        marker=dict(color="#3b82f6", size=7, opacity=0.6,
-                    line=dict(color="white", width=0.5)),
-        name="Dự đoán",
+    fig.add_trace(go.Bar(
+        x=categories,
+        y=v1,
+        name=car1["name"],
+        marker_color="#2563eb",
+        text=[f"{x:,.0f}" for x in v1],
+        textposition="outside"
     ))
-    fig.add_trace(go.Scatter(
-        x=[lo, hi], y=[lo, hi], mode="lines",
-        line=dict(color="#ef4444", dash="dash", width=1.8),
-        name="y = x (hoàn hảo)",
+    fig.add_trace(go.Bar(
+        x=categories,
+        y=v2,
+        name=car2["name"],
+        marker_color="#10b981",
+        text=[f"{x:,.0f}" for x in v2],
+        textposition="outside"
     ))
-    fig.update_xaxes(title_text="Giá thực tế (triệu VNĐ)", range=[lo, hi])
-    fig.update_yaxes(title_text="Giá dự đoán (triệu VNĐ)", range=[lo, hi])
-    title = (
-        f"Dự đoán vs. Thực tế — {model_name}<br>"
-        f"<sup>MAE = {mae:.1f} triệu VNĐ &nbsp;|&nbsp; R² = {r2:.3f}</sup>"
-    )
-    return _apply_theme(fig, title)
+
+    fig.update_layout(barmode="group")
+    _apply_theme(fig, f"So Sánh Trực Diện: {car1['name']} vs {car2['name']}")
+    fig.update_yaxes(title="Giá trị tương đối")
+    return fig
 
 
-# ─── 6. Metrics bar chart (Model Performance page) ─────────────────────────────
-def chart_metrics_bars(metrics: dict) -> go.Figure:
-    """metrics: {'baseline': {'mae':..,'r2':..}, 'linear_regression': {...}, 'random_forest': {...}}"""
-    names = ["Baseline", "Linear Regression", "Random Forest"]
-    keys  = ["baseline", "linear_regression", "random_forest"]
-    maes  = [metrics[k]["mae"] for k in keys]
-    r2s   = [metrics[k]["r2"]  for k in keys]
-    colors = ["#94a3b8", "#3b82f6", "#10b981"]
+def plot_tco_comparison(
+    monthly_km: int,
+    ev_kwh_per_100km: float = 14.0,
+    gas_l_per_100km: float = 7.5,
+    gas_price_vnd: float = 24000.0,
+    elec_price_vnd: float = 3858.0,
+    battery_rent_monthly: float = 1200000.0
+) -> go.Figure:
+    """So sánh tổng chi phí năng lượng tích lũy sau 1 năm và 3 năm."""
+    # Chi phí xe xăng / năm
+    annual_gas = (monthly_km * 12 / 100.0) * gas_l_per_100km * gas_price_vnd / 1e6
+    # Chi phí điện (mua đứt pin) / năm
+    annual_ev_bought = (monthly_km * 12 / 100.0) * ev_kwh_per_100km * elec_price_vnd / 1e6
+    # Chi phí điện (thuê pin) / năm = tiền sạc + tiền thuê pin
+    annual_ev_rent = annual_ev_bought + (battery_rent_monthly * 12 / 1e6)
 
-    fig = make_subplots(
-        rows=1, cols=2,
-        subplot_titles=["MAE — Thấp hơn = Tốt hơn", "R² — Cao hơn = Tốt hơn"],
-        horizontal_spacing=0.15,
-    )
-    fig.add_trace(
-        go.Bar(x=names, y=maes, marker_color=colors,
-               text=[f"{v:.1f}" for v in maes], textposition="outside",
-               name="MAE"),
-        row=1, col=1,
-    )
-    fig.add_trace(
-        go.Bar(x=names, y=r2s, marker_color=colors,
-               text=[f"{v:.3f}" for v in r2s], textposition="outside",
-               name="R²"),
-        row=1, col=2,
-    )
-    fig.update_yaxes(title_text="Triệu VNĐ", row=1, col=1)
-    fig.update_yaxes(title_text="R²", row=1, col=2)
-    fig.update_layout(
-        showlegend=False,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(248,250,252,0.8)",
-        font=dict(family=FONT_FAMILY),
-    )
-    fig.update_xaxes(gridcolor="#e2e8f0")
-    fig.update_yaxes(gridcolor="#e2e8f0")
+    periods = ["1 Năm", "2 Năm", "3 Năm"]
+    gas_totals = [round(annual_gas * i, 1) for i in [1, 2, 3]]
+    ev_bought_totals = [round(annual_ev_bought * i, 1) for i in [1, 2, 3]]
+    ev_rent_totals = [round(annual_ev_rent * i, 1) for i in [1, 2, 3]]
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=periods,
+        y=gas_totals,
+        name="Xe Xăng cùng phân khúc",
+        marker_color="#ef4444",
+        text=[f"{v:,.1f} tr" for v in gas_totals],
+        textposition="outside"
+    ))
+    fig.add_trace(go.Bar(
+        x=periods,
+        y=ev_rent_totals,
+        name="Xe Điện (Thuê Pin)",
+        marker_color="#f59e0b",
+        text=[f"{v:,.1f} tr" for v in ev_rent_totals],
+        textposition="outside"
+    ))
+    fig.add_trace(go.Bar(
+        x=periods,
+        y=ev_bought_totals,
+        name="Xe Điện (Mua Pin)",
+        marker_color="#10b981",
+        text=[f"{v:,.1f} tr" for v in ev_bought_totals],
+        textposition="outside"
+    ))
+
+    fig.update_layout(barmode="group")
+    _apply_theme(fig, f"Dự Toán Chi Phí Năng Lượng Tích Lũy (Chạy {monthly_km:,.0f} km/tháng)")
+    fig.update_yaxes(title="Tổng chi phí nhiên liệu (Triệu VNĐ)")
     return fig
