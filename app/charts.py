@@ -1,7 +1,7 @@
 """
 app/charts.py
 -------------
-Các hàm khởi tạo biểu đồ Plotly tương tác cho ứng dụng:
+Khởi tạo biểu đồ Plotly tương tác, hỗ trợ Dark/Light theme và đa ngôn ngữ:
 1. plot_price_forecast_curve(): Đường giá dự báo 12 tháng kèm dải tin cậy và điểm chạm đáy.
 2. plot_historical_timeline(): Lịch sử giá niêm yết qua các năm (Kèm pin vs Thuê pin).
 3. plot_price_vs_odo(): Tương quan Giá rao bán vs Số km ODO thực tế.
@@ -13,52 +13,62 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
-from plotly.subplots import make_subplots
 
 FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
 
 
-def _apply_theme(fig: go.Figure, title: str = "") -> go.Figure:
-    """Áp dụng theme hiện đại, tinh tế cho biểu đồ Plotly."""
+def _apply_theme(fig: go.Figure, title: str = "", theme: str = "light") -> go.Figure:
+    """Áp dụng theme Light hoặc Dark hiện đại, tối giản, chuyên nghiệp."""
+    is_dark = (theme.lower() == "dark")
+
+    title_color = "#f8fafc" if is_dark else "#0f172a"
+    font_color = "#94a3b8" if is_dark else "#475569"
+    plot_bg = "rgba(15, 23, 42, 0.5)" if is_dark else "rgba(248, 250, 252, 0.85)"
+    grid_color = "#1e293b" if is_dark else "#e2e8f0"
+    zero_color = "#334155" if is_dark else "#cbd5e1"
+    border_color = "#334155" if is_dark else "#e2e8f0"
+    legend_bg = "rgba(15, 23, 42, 0.85)" if is_dark else "rgba(255, 255, 255, 0.85)"
+
     fig.update_layout(
         title=dict(
             text=f"<b>{title}</b>" if title else "",
-            font=dict(size=16, family=FONT_FAMILY, color="#0f172a"),
+            font=dict(size=14, family=FONT_FAMILY, color=title_color),
             x=0.01,
             y=0.96
         ),
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(248, 250, 252, 0.7)",
-        font=dict(family=FONT_FAMILY, color="#334155"),
-        margin=dict(t=50, b=40, l=45, r=25),
+        plot_bgcolor=plot_bg,
+        font=dict(family=FONT_FAMILY, color=font_color, size=12),
+        margin=dict(t=45, b=35, l=45, r=20),
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=1.02,
             xanchor="right",
             x=1,
-            bgcolor="rgba(255, 255, 255, 0.8)",
-            bordercolor="#e2e8f0",
-            borderwidth=1
+            bgcolor=legend_bg,
+            bordercolor=border_color,
+            borderwidth=1,
+            font=dict(size=11, color=font_color)
         ),
         hoverlabel=dict(
-            bgcolor="#0f172a",
+            bgcolor="#0f172a" if not is_dark else "#1e293b",
             font_size=12,
             font_family=FONT_FAMILY,
             font_color="white"
         )
     )
     fig.update_xaxes(
-        gridcolor="#e2e8f0",
-        zerolinecolor="#cbd5e1",
+        gridcolor=grid_color,
+        zerolinecolor=zero_color,
         showline=True,
-        linecolor="#cbd5e1"
+        linecolor=zero_color
     )
     fig.update_yaxes(
-        gridcolor="#e2e8f0",
-        zerolinecolor="#cbd5e1",
+        gridcolor=grid_color,
+        zerolinecolor=zero_color,
         showline=True,
-        linecolor="#cbd5e1"
+        linecolor=zero_color
     )
     return fig
 
@@ -66,12 +76,24 @@ def _apply_theme(fig: go.Figure, title: str = "") -> go.Figure:
 def plot_price_forecast_curve(
     forecast_df: pd.DataFrame,
     current_price: float,
-    model_name: str
+    model_name: str,
+    theme: str = "light",
+    lang: str = "vi"
 ) -> go.Figure:
-    """Biểu đồ dự phóng giá 12 tháng tới kèm dải tin cậy 90%."""
+    """Đường giá dự phóng 12 tháng kèm dải tin cậy 90%."""
     fig = go.Figure()
+    is_dark = (theme.lower() == "dark")
 
-    # Dải tin cậy trên và dưới (Shaded Area)
+    # Dải tin cậy
+    fill_col = "rgba(56, 189, 248, 0.12)" if is_dark else "rgba(37, 99, 235, 0.10)"
+    ci_label = "90% Confidence Band" if lang == "en" else "Dải tin cậy 90%"
+    line_label = "Forecast Median" if lang == "en" else "Giá dự báo trung bình"
+    best_label = "Lowest Point" if lang == "en" else "Điểm chạm đáy"
+    curr_label = "Current" if lang == "en" else "Hiện tại"
+    title_text = f"12-Month Price Forecast — {model_name}" if lang == "en" else f"Dự báo Giá 12 Tháng — {model_name}"
+    x_title = "Forecast Period" if lang == "en" else "Thời điểm"
+    y_title = "Price (Million VND)" if lang == "en" else "Giá xe (Triệu VNĐ)"
+
     fig.add_trace(go.Scatter(
         x=forecast_df["date_str"],
         y=forecast_df["price_max"],
@@ -86,95 +108,100 @@ def plot_price_forecast_curve(
         mode="lines",
         line=dict(width=0),
         fill="tonexty",
-        fillcolor="rgba(59, 130, 246, 0.12)",
-        name="Dải tin cậy 90%",
+        fillcolor=fill_col,
+        name=ci_label,
         hoverinfo="skip"
     ))
 
-    # Đường giá dự báo chính
+    # Đường giá chính
+    line_col = "#38bdf8" if is_dark else "#2563eb"
     fig.add_trace(go.Scatter(
         x=forecast_df["date_str"],
         y=forecast_df["pred_price"],
         mode="lines+markers",
-        line=dict(color="#2563eb", width=3.5),
-        marker=dict(size=7, color="#1d4ed8"),
-        name="Giá dự báo trung bình",
-        hovertemplate="<b>%{x}</b><br>Giá dự báo: <b>%{y:,.1f} triệu VNĐ</b><extra></extra>"
+        line=dict(color=line_col, width=2.5),
+        marker=dict(size=6, color=line_col),
+        name=line_label,
+        hovertemplate="<b>%{x}</b><br>" + f"{line_label}: <b>" + "%{y:,.1f} tr</b><extra></extra>"
     ))
 
-    # Điểm chạm đáy (Thời điểm vàng để mua)
+    # Điểm đáy
     best_row = forecast_df[forecast_df["is_best_time"]].iloc[0]
     fig.add_trace(go.Scatter(
         x=[best_row["date_str"]],
         y=[best_row["pred_price"]],
         mode="markers+text",
-        marker=dict(size=14, color="#10b981", symbol="star", line=dict(color="#047857", width=2)),
-        text=["🌟 Đáy giá"],
+        marker=dict(size=10, color="#10b981", symbol="circle", line=dict(color="#047857", width=2)),
+        text=[f"[{best_label}]"],
         textposition="bottom center",
-        textfont=dict(color="#047857", size=12, family=FONT_FAMILY),
-        name="Thời điểm mua tốt nhất",
-        hovertemplate="<b>THỜI ĐIỂM VÀNG (%{x})</b><br>Giá đáy: <b>%{y:,.1f} triệu VNĐ</b><br>Tiết kiệm: <b>" + f"{best_row['saving_vs_now']:,.1f} tr</b><extra></extra>"
+        textfont=dict(color="#10b981", size=11, family=FONT_FAMILY),
+        name=best_label,
+        hovertemplate="<b>%{x}</b><br>" + f"{best_label}: <b>" + "%{y:,.1f} tr</b><extra></extra>"
     ))
 
-    # Đường tham chiếu giá hiện tại
+    # Đường tham chiếu mốc hiện tại
     fig.add_hline(
         y=current_price,
         line_dash="dot",
-        line_color="#94a3b8",
-        line_width=1.5,
-        annotation_text=f"Hiện tại: {current_price:,.0f} tr",
+        line_color="#64748b" if is_dark else "#94a3b8",
+        line_width=1.2,
+        annotation_text=f"{curr_label}: {current_price:,.0f} tr",
         annotation_position="top left",
-        annotation_font=dict(size=11, color="#64748b")
+        annotation_font=dict(size=10, color="#94a3b8" if is_dark else "#64748b")
     )
 
-    _apply_theme(fig, f"Dự báo Xu hướng Giá 12 Tháng Tới — {model_name}")
-    fig.update_xaxes(title="Tháng dự báo")
-    fig.update_yaxes(title="Giá xe (Triệu VNĐ)")
+    _apply_theme(fig, title_text, theme=theme)
+    fig.update_xaxes(title=dict(text=x_title, font=dict(size=11)))
+    fig.update_yaxes(title=dict(text=y_title, font=dict(size=11)))
     return fig
 
 
-def plot_historical_timeline(bench_df: pd.DataFrame, selected_model: str) -> go.Figure:
-    """Biểu đồ lịch sử giá niêm yết qua các năm (Kèm pin vs Thuê pin)."""
+def plot_historical_timeline(bench_df: pd.DataFrame, selected_model: str, theme: str = "light", lang: str = "vi") -> go.Figure:
+    """Lịch sử giá niêm yết qua các năm."""
     fig = go.Figure()
 
     df_sub = bench_df[bench_df["Model"] == selected_model].sort_values("Year")
     if df_sub.empty:
         return fig
 
-    # Đường giá kèm pin
+    lbl_battery = "With Battery" if lang == "en" else "Kèm Pin"
+    lbl_nobat = "Battery Subscription (No Battery)" if lang == "en" else "Thuê Pin (Không pin)"
+    title_text = f"MSRP Timeline — {selected_model}" if lang == "en" else f"Lịch sử Giá Niêm yết — {selected_model}"
+    x_title = "Model Year" if lang == "en" else "Năm sản xuất / Mở bán"
+    y_title = "List Price (Million VND)" if lang == "en" else "Giá niêm yết (Triệu VNĐ)"
+
     fig.add_trace(go.Scatter(
         x=df_sub["Year"],
         y=df_sub["price_with_bat_million"],
         mode="lines+markers+text",
-        line=dict(color="#059669", width=3),
-        marker=dict(size=9, color="#047857"),
-        text=[f"{v:,.0f} tr" for v in df_sub["price_with_bat_million"]],
+        line=dict(color="#10b981", width=2.5),
+        marker=dict(size=7, color="#059669"),
+        text=[f"{v:,.0f}" for v in df_sub["price_with_bat_million"]],
         textposition="top center",
-        name="Giá Kèm Pin",
-        hovertemplate="Năm: %{x}<br>Kèm Pin: <b>%{y:,.0f} triệu</b><extra></extra>"
+        name=lbl_battery,
+        hovertemplate="Year: %{x}<br>" + f"{lbl_battery}: <b>" + "%{y:,.0f} tr</b><extra></extra>"
     ))
 
-    # Đường giá thuê pin
     fig.add_trace(go.Scatter(
         x=df_sub["Year"],
         y=df_sub["price_no_bat_million"],
         mode="lines+markers+text",
-        line=dict(color="#d97706", width=3, dash="dash"),
-        marker=dict(size=9, color="#b45309"),
-        text=[f"{v:,.0f} tr" for v in df_sub["price_no_bat_million"]],
+        line=dict(color="#f59e0b", width=2.5, dash="dash"),
+        marker=dict(size=7, color="#d97706"),
+        text=[f"{v:,.0f}" for v in df_sub["price_no_bat_million"]],
         textposition="bottom center",
-        name="Giá Thuê Pin (Không pin)",
-        hovertemplate="Năm: %{x}<br>Thuê Pin: <b>%{y:,.0f} triệu</b><extra></extra>"
+        name=lbl_nobat,
+        hovertemplate="Year: %{x}<br>" + f"{lbl_nobat}: <b>" + "%{y:,.0f} tr</b><extra></extra>"
     ))
 
-    _apply_theme(fig, f"Lịch sử Biến động Giá Niêm yết Chính hãng — {selected_model}")
-    fig.update_xaxes(title="Năm sản xuất / Mở bán", dtick=1)
-    fig.update_yaxes(title="Giá niêm yết (Triệu VNĐ)")
+    _apply_theme(fig, title_text, theme=theme)
+    fig.update_xaxes(title=dict(text=x_title, font=dict(size=11)), dtick=1)
+    fig.update_yaxes(title=dict(text=y_title, font=dict(size=11)))
     return fig
 
 
-def plot_price_vs_odo(df_listings: pd.DataFrame, model_name: str) -> go.Figure:
-    """Biểu đồ phân tán ODO vs Giá chào bán thực tế trên thị trường."""
+def plot_price_vs_odo(df_listings: pd.DataFrame, model_name: str, theme: str = "light", lang: str = "vi") -> go.Figure:
+    """Tương quan ODO vs Giá chào bán thực tế."""
     fig = go.Figure()
     if df_listings.empty or "odo_km" not in df_listings.columns:
         return fig
@@ -188,21 +215,25 @@ def plot_price_vs_odo(df_listings: pd.DataFrame, model_name: str) -> go.Figure:
     if df_used.empty:
         return fig
 
+    lbl_data = "Market Listings" if lang == "en" else "Tin rao thực tế"
+    lbl_trend = "Depreciation Trendline" if lang == "en" else "Đường xu hướng trượt giá"
+    title_text = f"Asking Price vs. Mileage — {model_name}" if lang == "en" else f"Tương quan Số Km ODO & Giá Rao — {model_name}"
+    x_title = "Mileage (km)" if lang == "en" else "Số km đã lăn bánh (ODO)"
+    y_title = "Price (Million VND)" if lang == "en" else "Giá rao bán (Triệu VNĐ)"
+
     fig.add_trace(go.Scatter(
         x=df_used["odo_km"],
         y=df_used["price_million"],
         mode="markers",
         marker=dict(
-            size=8,
-            color="#3b82f6",
-            opacity=0.65,
-            line=dict(color="#1d4ed8", width=1)
+            size=6,
+            color="#38bdf8" if theme.lower() == "dark" else "#2563eb",
+            opacity=0.6
         ),
-        name="Tin rao thực tế",
-        hovertemplate="ODO: <b>%{x:,.0f} km</b><br>Giá: <b>%{y:,.0f} tr</b><extra></extra>"
+        name=lbl_data,
+        hovertemplate="ODO: <b>%{x:,.0f} km</b><br>Price: <b>%{y:,.0f} tr</b><extra></extra>"
     ))
 
-    # Đường hồi quy xu hướng
     try:
         m, b = np.polyfit(df_used["odo_km"], df_used["price_million"], 1)
         x_trend = np.linspace(df_used["odo_km"].min(), df_used["odo_km"].max(), 50)
@@ -211,22 +242,26 @@ def plot_price_vs_odo(df_listings: pd.DataFrame, model_name: str) -> go.Figure:
             x=x_trend,
             y=y_trend,
             mode="lines",
-            line=dict(color="#ef4444", width=2.5, dash="dot"),
-            name="Đường trượt giá theo ODO",
+            line=dict(color="#f43f5e", width=2, dash="dot"),
+            name=lbl_trend,
             hoverinfo="skip"
         ))
     except Exception:
         pass
 
-    _apply_theme(fig, f"Tương quan Số Km Đã Đi (ODO) và Giá Rao Bán — {model_name}")
-    fig.update_xaxes(title="Số km đã lăn bánh (ODO)", tickformat=",.0f")
-    fig.update_yaxes(title="Giá chào bán (Triệu VNĐ)")
+    _apply_theme(fig, title_text, theme=theme)
+    fig.update_xaxes(title=dict(text=x_title, font=dict(size=11)), tickformat=",.0f")
+    fig.update_yaxes(title=dict(text=y_title, font=dict(size=11)))
     return fig
 
 
-def plot_head_to_head_bars(car1: dict, car2: dict) -> go.Figure:
+def plot_head_to_head_bars(car1: dict, car2: dict, theme: str = "light", lang: str = "vi") -> go.Figure:
     """So sánh trực quan hai dòng xe trên nhiều chỉ số."""
-    categories = ["Giá hiện tại (tr)", "Giá dự báo 1 năm (tr)", "Tầm vận hành (km)", "Công suất (hp)"]
+    if lang == "en":
+        categories = ["Current Price (M)", "1Y Forecast (M)", "Range (km)", "Power (hp)"]
+    else:
+        categories = ["Giá hiện tại (tr)", "Giá dự báo 1 năm (tr)", "Tầm vận hành (km)", "Công suất (hp)"]
+
     v1 = [car1["price"], car1["future_price"], car1["range"], car1["power"]]
     v2 = [car2["price"], car2["future_price"], car2["range"], car2["power"]]
 
@@ -235,7 +270,7 @@ def plot_head_to_head_bars(car1: dict, car2: dict) -> go.Figure:
         x=categories,
         y=v1,
         name=car1["name"],
-        marker_color="#2563eb",
+        marker_color="#2563eb" if theme.lower() != "dark" else "#38bdf8",
         text=[f"{x:,.0f}" for x in v1],
         textposition="outside"
     ))
@@ -249,8 +284,8 @@ def plot_head_to_head_bars(car1: dict, car2: dict) -> go.Figure:
     ))
 
     fig.update_layout(barmode="group")
-    _apply_theme(fig, f"So Sánh Trực Diện: {car1['name']} vs {car2['name']}")
-    fig.update_yaxes(title="Giá trị tương đối")
+    title_text = f"Comparison: {car1['name']} vs {car2['name']}" if lang == "en" else f"So Sánh: {car1['name']} vs {car2['name']}"
+    _apply_theme(fig, title_text, theme=theme)
     return fig
 
 
@@ -260,48 +295,53 @@ def plot_tco_comparison(
     gas_l_per_100km: float = 7.5,
     gas_price_vnd: float = 24000.0,
     elec_price_vnd: float = 3858.0,
-    battery_rent_monthly: float = 1200000.0
+    battery_rent_monthly: float = 1200000.0,
+    theme: str = "light",
+    lang: str = "vi"
 ) -> go.Figure:
     """So sánh tổng chi phí năng lượng tích lũy sau 1 năm và 3 năm."""
-    # Chi phí xe xăng / năm
     annual_gas = (monthly_km * 12 / 100.0) * gas_l_per_100km * gas_price_vnd / 1e6
-    # Chi phí điện (mua đứt pin) / năm
     annual_ev_bought = (monthly_km * 12 / 100.0) * ev_kwh_per_100km * elec_price_vnd / 1e6
-    # Chi phí điện (thuê pin) / năm = tiền sạc + tiền thuê pin
     annual_ev_rent = annual_ev_bought + (battery_rent_monthly * 12 / 1e6)
 
-    periods = ["1 Năm", "2 Năm", "3 Năm"]
+    periods = ["1 Year", "2 Years", "3 Years"] if lang == "en" else ["1 Năm", "2 Năm", "3 Năm"]
     gas_totals = [round(annual_gas * i, 1) for i in [1, 2, 3]]
     ev_bought_totals = [round(annual_ev_bought * i, 1) for i in [1, 2, 3]]
     ev_rent_totals = [round(annual_ev_rent * i, 1) for i in [1, 2, 3]]
+
+    lbl_gas = "ICE Petrol Vehicle" if lang == "en" else "Xe Xăng tương đương"
+    lbl_rent = "EV (Battery Subscription)" if lang == "en" else "Xe Điện (Thuê Pin)"
+    lbl_bought = "EV (Battery Included)" if lang == "en" else "Xe Điện (Mua Đứt Pin)"
+    title_text = f"Cumulative Energy Costs ({monthly_km:,.0f} km/month)" if lang == "en" else f"Dự Toán Chi Phí Năng Lượng ({monthly_km:,.0f} km/tháng)"
+    y_title = "Cumulative Cost (Million VND)" if lang == "en" else "Tổng chi phí nhiên liệu (Triệu VNĐ)"
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=periods,
         y=gas_totals,
-        name="Xe Xăng cùng phân khúc",
-        marker_color="#ef4444",
-        text=[f"{v:,.1f} tr" for v in gas_totals],
+        name=lbl_gas,
+        marker_color="#f43f5e",
+        text=[f"{v:,.1f}" for v in gas_totals],
         textposition="outside"
     ))
     fig.add_trace(go.Bar(
         x=periods,
         y=ev_rent_totals,
-        name="Xe Điện (Thuê Pin)",
+        name=lbl_rent,
         marker_color="#f59e0b",
-        text=[f"{v:,.1f} tr" for v in ev_rent_totals],
+        text=[f"{v:,.1f}" for v in ev_rent_totals],
         textposition="outside"
     ))
     fig.add_trace(go.Bar(
         x=periods,
         y=ev_bought_totals,
-        name="Xe Điện (Mua Pin)",
+        name=lbl_bought,
         marker_color="#10b981",
-        text=[f"{v:,.1f} tr" for v in ev_bought_totals],
+        text=[f"{v:,.1f}" for v in ev_bought_totals],
         textposition="outside"
     ))
 
     fig.update_layout(barmode="group")
-    _apply_theme(fig, f"Dự Toán Chi Phí Năng Lượng Tích Lũy (Chạy {monthly_km:,.0f} km/tháng)")
-    fig.update_yaxes(title="Tổng chi phí nhiên liệu (Triệu VNĐ)")
+    _apply_theme(fig, title_text, theme=theme)
+    fig.update_yaxes(title=dict(text=y_title, font=dict(size=11)))
     return fig
